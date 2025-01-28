@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Landslide Risk Assessment</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.6.1/firebase-app-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.6.1/firebase-database-compat.js"></script>
@@ -14,6 +14,7 @@
             background: linear-gradient(-45deg, #f5f5f5, #e8f5e9, #e3f2fd, #f5f5f5);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
         }
 
         @keyframes gradientBG {
@@ -111,8 +112,8 @@
         }
 
         .circle {
-            width: 100px;
-            height: 100px;
+            width: 80px; /* Adjusted for better mobile view */
+            height: 80px; /* Adjusted for better mobile view */
             border-radius: 50%;
             border: 3px solid #4CAF50;
             display: flex;
@@ -120,7 +121,7 @@
             justify-content: center;
             margin-bottom: 8px;
             background: white;
-            font-size: 16px;
+            font-size: 14px; /* Adjusted for better mobile view */
             font-weight: bold;
             color: #333;
             text-align: center;
@@ -136,25 +137,8 @@
             box-shadow: 0 5px 15px rgba(76,175,80,0.3);
         }
 
-        .circle::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.8), transparent);
-            transform: rotate(45deg);
-            animation: shine 3s infinite;
-        }
-
-        @keyframes shine {
-            0% { transform: translateX(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) rotate(45deg); }
-        }
-
         .parameter-label {
-            font-size: 14px;
+            font-size: 12px; /* Adjusted for better mobile view */
             color: #666;
             text-align: center;
             height: 40px;
@@ -187,41 +171,8 @@
             box-shadow: 0 5px 15px rgba(76,175,80,0.3);
         }
 
-        .refresh-btn:active {
-            transform: translateY(0);
-        }
-
-        .refresh-btn::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 5px;
-            height: 5px;
-            background: rgba(255,255,255,0.5);
-            opacity: 0;
-            border-radius: 100%;
-            transform: scale(1, 1) translate(-50%);
-            transform-origin: 50% 50%;
-        }
-
-        .refresh-btn:focus:not(:active)::after {
-            animation: ripple 1s ease-out;
-        }
-
-        @keyframes ripple {
-            0% {
-                transform: scale(0, 0);
-                opacity: 0.5;
-            }
-            100% {
-                transform: scale(20, 20);
-                opacity: 0;
-            }
-        }
-
         .unit {
-            font-size: 12px;
+            font-size: 10px; /* Adjusted for better mobile view */
             color: #666;
             opacity: 0.8;
             transition: opacity 0.3s ease;
@@ -244,50 +195,6 @@
             to { opacity: 1; }
         }
 
-        .updated {
-            animation: pulse 0.5s ease;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        @media screen and (min-width: 768px) {
-            .parameters {
-                grid-template-columns: repeat(6, 1fr);
-            }
-            
-            .circle {
-                width: 100px;
-                height: 100px;
-                font-size: 16px;
-            }
-
-            .parameter-label {
-                font-size: 14px;
-                height: 40px;
-            }
-
-            .container {
-                max-width: 1000px;
-            }
-
-            h1 {
-                font-size: 32px;
-            }
-
-            h1::after {
-                animation: underline 1s ease forwards 0.5s;
-            }
-
-            @keyframes underline {
-                to { width: 200px; }
-            }
-        }
-
-        /* Bell Icon Styles */
         .bell-icon {
             position: fixed;
             top: 20px;
@@ -296,18 +203,6 @@
             cursor: pointer;
             transition: transform 0.2s;
             display: none; /* Initially hidden */
-        }
-
-        .bell-icon.vibrate {
-            animation: vibrate 0.5s infinite;
-        }
-
-        @keyframes vibrate {
-            0% { transform: translate(0); }
-            25% { transform: translate(-2px, 2px); }
-            50% { transform: translate(2px, -2px); }
-            75% { transform: translate(-2px, -2px); }
-            100% { transform: translate(0); }
         }
 
         /* Caution Message Modal Styles */
@@ -381,6 +276,39 @@
         @keyframes fadeOut {
             from { opacity: 1; }
             to { opacity: 0; }
+        }
+
+        @media screen and (min-width: 768px) {
+            .parameters {
+                grid-template-columns: repeat(6, 1fr);
+            }
+
+            .circle {
+                width: 100px;
+                height: 100px;
+                font-size: 16px;
+            }
+
+            .parameter-label {
+                font-size: 14px;
+                height: 40px;
+            }
+
+            .container {
+                max-width: 1000px;
+            }
+
+            h1 {
+                font-size: 32px;
+            }
+
+            h1::after {
+                animation: underline 1s ease forwards 0.5s;
+            }
+
+            @keyframes underline {
+                to { width: 200px; }
+            }
         }
     </style>
 </head>
@@ -565,7 +493,7 @@
                 modal.classList.add('show'); // Show the modal
                 setTimeout(() => {
                     modal.classList.remove('show'); // Hide the modal after a delay
-                }, 5000); // Hide after 10 seconds
+                }, 5000); // Hide after 5 seconds
             }
         });
 
