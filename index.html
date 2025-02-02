@@ -510,48 +510,75 @@
             return units[id] || '';
         }
 
-        function parseValue(dataString, key) {
-            const regex = new RegExp(`${key}: ([\\d.]+)`);
-            const match = dataString.match(regex);
-            return match ? parseFloat(match[1]).toFixed(2) : '--';
-        }
-
         function refreshData() {
-            // Fetch sensor data
-            const messagesRef = database.ref('messages');
+            // Fetch prediction result
             const resultRef = database.ref('result');
 
-            messagesRef.limitToLast(1).once('value')
-                .then((snapshot) => {
-                    const data = snapshot.val();
-                    if (data) {
-                        const lastMessage = Object.values(data)[0];
-                        const formattedData = lastMessage.formatted_data;
-                        
-                        updateCircle('rainfall', parseValue(formattedData, 'Rainfall_mm'));
-                        updateCircle('water0-1', parseValue(formattedData, 'Water_Volume_0_1m_m3'));
-                        updateCircle('water1-5', parseValue(formattedData, 'Water_Volume_1_5m_m3'));
-                        updateCircle('water5plus', parseValue(formattedData, 'Water_Volume_greater_5m_m3'));
-                        updateCircle('accelerometer', parseValue(formattedData, 'Accelerometer_0_1m_m_s2'));
-                        updateCircle('slope', parseValue(formattedData, 'Slope_degree'));
-                    }
-                })
-                .catch((error) => {
-                    console.error("Error fetching sensor data:", error);
-                });
-
-            // Fetch prediction result
             resultRef.limitToLast(1).once('value')
                 .then((snapshot) => {
                     const data = snapshot.val();
                     if (data) {
                         const lastResult = Object.values(data)[0];
-                        updateCircle('landslide-prediction', lastResult.prediction);
+                        const formattedData = lastResult.result;
+
+                        // Parse the formatted data
+                        const dataDict = {};
+                        formattedData.split(', ').forEach(item => {
+                            const [key, value] = item.split(': ');
+                            dataDict[key.trim()] = value.trim();
+                        });
+
+                        // Update circles with fetched values
+                        updateCircle('rainfall', dataDict['Rainfall']);
+                        updateCircle('water0-1', dataDict['Water Volume (0-1m)']);
+                        updateCircle('water1-5', dataDict['Water Volume (1-5m)']);
+                        updateCircle('water5plus', dataDict['Water Volume (>5m)']);
+                        updateCircle('accelerometer', dataDict['Accelerometer']);
+                        updateCircle('slope', dataDict['Slope']);
+                        updateCircle('landslide-prediction', dataDict['Landslide Likelihood']);
+
+                        // Submit data to Google Form if not already submitted
+                        submitToGoogleForm(dataDict);
                     }
                 })
                 .catch((error) => {
-                    console.error("Error fetching prediction:", error);
+                    console.error("Error fetching prediction result:", error);
                 });
+        }
+
+        function submitToGoogleForm(dataDict) {
+            const lastSubmitted = JSON.parse(localStorage.getItem('lastSubmitted')) || {};
+
+            // Create a unique key for the parameters
+            const uniqueKey = `${dataDict['Rainfall']}-${dataDict['Water Volume (0-1m)']}-${dataDict['Water Volume (1-5m)']}-${dataDict['Water Volume (>5m)']}-${dataDict['Accelerometer']}-${dataDict['Slope']}`;
+
+            // Check if the current parameters have already been submitted
+            if (lastSubmitted.key !== uniqueKey) {
+                // Prepare the data for submission
+                const formData = new FormData();
+                formData.append('entry.1485619014', dataDict['Rainfall']); // Replace with your actual entry ID
+                formData.append('entry.1743092445', dataDict['Water Volume (0-1m)']); // Replace with your actual entry ID
+                formData.append('entry.1450476593', dataDict['Water Volume (1-5m)']); // Replace with your actual entry ID
+                formData.append('entry.608111310', dataDict['Water Volume (>5m)']); // Replace with your actual entry ID
+                formData.append('entry.1543742724', dataDict['Accelerometer']); // Replace with your actual entry ID
+                formData.append('entry.846586625', dataDict['Slope']); // Replace with your actual entry ID
+                formData.append('entry.1287299469', dataDict['Landslide Likelihood']); // Replace with your actual entry ID
+
+                // Send the data to the Google Form
+                fetch('https://docs.google.com/forms/d/e/1FAIpQLSeNma8DF-hdidzyNzWDHG5T5oncWi4RjcjCRSs4uKooVCDeUw/formResponse', {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors'
+                })
+                .then(response => {
+                    console.log('Data submitted successfully:', response);
+                    // Update last submitted values
+                    localStorage.setItem('lastSubmitted', JSON.stringify({ key: uniqueKey }));
+                })
+                .catch(error => {
+                    console.error('Error submitting data to Google Form:', error);
+                });
+            }
         }
 
         // Initial data load
@@ -565,7 +592,7 @@
                 modal.classList.add('show'); // Show the modal
                 setTimeout(() => {
                     modal.classList.remove('show'); // Hide the modal after a delay
-                }, 5000); // Hide after 10 seconds
+                }, 5000); // Hide after 5 seconds
             }
         });
 
