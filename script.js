@@ -26,7 +26,7 @@ window.onload = function() {
 
 function updateCircle(id, value) {
     const circle = document.getElementById(id);
-    if (id === 'landslide-prediction') {
+    if (id === 'initial-alert' || id === 'final-alert') {
         circle.innerHTML = value;
         circle.classList.remove('yes', 'no');
         if (value === 'Yes') {
@@ -82,10 +82,20 @@ function refreshData() {
                 updateCircle('water5plus', dataDict['Water Volume (>5m)']);
                 updateCircle('accelerometer', dataDict['Accelerometer']);
                 updateCircle('slope', dataDict['Slope']);
-                updateCircle('landslide-prediction', dataDict['Landslide Likelihood']);
+
+                // Update Initial Land Slide Alert based on accelerometer value
+                const accelerometerValue = parseFloat(dataDict['Accelerometer']);
+                const initialAlert = accelerometerValue >= 1 ? 'Yes' : 'No';
+                updateCircle('initial-alert', initialAlert);
+
+                // Update Final Land Slide Alert based on the value from Firebase
+                // Note: This assumes the Firebase data uses 'Landslide Likelihood' as the key
+                // If it's different in your Firebase, you'll need to adjust this line
+                const finalAlert = dataDict['Landslide Likelihood'] || 'No';
+                updateCircle('final-alert', finalAlert);
 
                 // Submit data to Google Form if not already submitted
-                submitToGoogleForm(dataDict);
+                submitToGoogleForm(dataDict, initialAlert);
             }
         })
         .catch((error) => {
@@ -93,7 +103,7 @@ function refreshData() {
         });
 }
 
-function submitToGoogleForm(dataDict) {
+function submitToGoogleForm(dataDict, initialAlert) {
     const lastSubmitted = JSON.parse(localStorage.getItem('lastSubmitted')) || {};
 
     // Create a unique key for the parameters
@@ -109,7 +119,7 @@ function submitToGoogleForm(dataDict) {
         formData.append('entry.608111310', dataDict['Water Volume (>5m)']); // Replace with your actual entry ID
         formData.append('entry.1543742724', dataDict['Accelerometer']); // Replace with your actual entry ID
         formData.append('entry.846586625', dataDict['Slope']); // Replace with your actual entry ID
-        formData.append('entry.1287299469', dataDict['Landslide Likelihood']); // Replace with your actual entry ID
+        formData.append('entry.1287299469', initialAlert); // Replace with your actual entry ID
 
         // Send the data to the Google Form
         fetch('https://docs.google.com/forms/d/e/1FAIpQLSeNma8DF-hdidzyNzWDHG5T5oncWi4RjcjCRSs4uKooVCDeUw/formResponse', {
@@ -133,7 +143,7 @@ refreshData();
 
 // Bell icon click event
 document.getElementById('bell-icon').addEventListener('click', function() {
-    const prediction = document.getElementById('landslide-prediction').innerHTML;
+    const prediction = document.getElementById('initial-alert').innerHTML;
     if (prediction === 'Yes') {
         const modal = document.getElementById('caution-modal');
         modal.classList.add('show'); // Show the modal
