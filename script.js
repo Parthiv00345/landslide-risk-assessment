@@ -89,13 +89,11 @@ function refreshData() {
                 updateCircle('initial-alert', initialAlert);
 
                 // Update Final Land Slide Alert based on the value from Firebase
-                // Note: This assumes the Firebase data uses 'Landslide Likelihood' as the key
-                // If it's different in your Firebase, you'll need to adjust this line
                 const finalAlert = dataDict['Landslide Likelihood'] || 'No';
                 updateCircle('final-alert', finalAlert);
 
                 // Submit data to Google Form if not already submitted
-                submitToGoogleForm(dataDict, initialAlert);
+                submitToGoogleForm(dataDict, initialAlert, finalAlert);
             }
         })
         .catch((error) => {
@@ -103,7 +101,7 @@ function refreshData() {
         });
 }
 
-function submitToGoogleForm(dataDict, initialAlert) {
+function submitToGoogleForm(dataDict, initialAlert, finalAlert) {
     const lastSubmitted = JSON.parse(localStorage.getItem('lastSubmitted')) || {};
 
     // Create a unique key for the parameters
@@ -113,16 +111,17 @@ function submitToGoogleForm(dataDict, initialAlert) {
     if (lastSubmitted.key !== uniqueKey) {
         // Prepare the data for submission
         const formData = new FormData();
-        formData.append('entry.1485619014', dataDict['Rainfall']); // Replace with your actual entry ID
-        formData.append('entry.1743092445', dataDict['Water Volume (0-1m)']); // Replace with your actual entry ID
-        formData.append('entry.1450476593', dataDict['Water Volume (1-5m)']); // Replace with your actual entry ID
-        formData.append('entry.608111310', dataDict['Water Volume (>5m)']); // Replace with your actual entry ID
-        formData.append('entry.1543742724', dataDict['Accelerometer']); // Replace with your actual entry ID
-        formData.append('entry.846586625', dataDict['Slope']); // Replace with your actual entry ID
-        formData.append('entry.1287299469', initialAlert); // Replace with your actual entry ID
+        formData.append('entry.948082965', dataDict['Rainfall']); // Replace with your actual entry ID
+        formData.append('entry.1473004723', dataDict['Water Volume (0-1m)']); // Replace with your actual entry ID
+        formData.append('entry.764819333', dataDict['Water Volume (1-5m)']); // Replace with your actual entry ID
+        formData.append('entry.1637101488', dataDict['Water Volume (>5m)']); // Replace with your actual entry ID
+        formData.append('entry.1524139504', dataDict['Accelerometer']); // Replace with your actual entry ID
+        formData.append('entry.1115362831', dataDict['Slope']); // Replace with your actual entry ID
+        formData.append('entry.1625659076', initialAlert); // Initial Land Slide Alert
+        formData.append('entry.582503928', finalAlert); // Final Land Slide Alert (replace with your actual entry ID)
 
         // Send the data to the Google Form
-        fetch('https://docs.google.com/forms/d/e/1FAIpQLSeNma8DF-hdidzyNzWDHG5T5oncWi4RjcjCRSs4uKooVCDeUw/formResponse', {
+        fetch('https://docs.google.com/forms/d/e/1FAIpQLScbzJwgVRcgPVIYSDwA0XYYo6P1ZXBRvJtfnKBOmSMcbVXHrA/formResponse', {
             method: 'POST',
             body: formData,
             mode: 'no-cors'
